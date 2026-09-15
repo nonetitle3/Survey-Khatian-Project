@@ -19,11 +19,7 @@ class Item:
     parent_id: str | None = None
 
 
-DIVISIONS = [
-    Item("dhaka", "ঢাকা"),
-    Item("mymensingh", "ময়মনসিংহ"),
-    Item("sylhet", "সিলেট"),
-]
+DIVISIONS = [Item("dhaka", "ঢাকা"), Item("mymensingh", "ময়মনসিংহ"), Item("sylhet", "সিলেট")]
 DISTRICTS = {
     "dhaka": [Item("dhaka", "ঢাকা", "dhaka"), Item("gazipur", "গাজীপুর", "dhaka")],
     "mymensingh": [Item("mymensingh", "ময়মনসিংহ", "mymensingh"), Item("netrokona", "নেত্রকোনা", "mymensingh")],
@@ -50,15 +46,15 @@ MOUZAS = {
 }
 KHATIANS = {
     "trishal-rs-01": [
-        {"id": "k-101", "khatian_no": "101", "owner": "মোঃ আব্দুল করিম", "dag_no": "201", "land_area": "0.42 একর"},
-        {"id": "k-102", "khatian_no": "102", "owner": "মোছাঃ রহিমা বেগম", "dag_no": "205", "land_area": "0.31 একর"},
+        {"id": "k-101", "khatian_no": "101", "owner": "মোঃ আব্দুল করিম", "guardian": "পিং রহমত আলী", "dag_no": "201", "land_area": "0.42 একর"},
+        {"id": "k-102", "khatian_no": "102", "owner": "মোছাঃ রহিমা বেগম", "guardian": "স্বামী মোঃ সালাম", "dag_no": "205", "land_area": "0.31 একর"},
     ],
-    "trishal-rs-02": [{"id": "k-103", "khatian_no": "103", "owner": "মোঃ সেলিম মিয়া", "dag_no": "88", "land_area": "0.18 একর"}],
-    "trishal-sa-01": [{"id": "k-104", "khatian_no": "55", "owner": "মোঃ হাবিবুর রহমান", "dag_no": "71", "land_area": "0.27 একর"}],
-    "muktagacha-rs-01": [{"id": "k-105", "khatian_no": "12", "owner": "মোছাঃ নাসিমা আক্তার", "dag_no": "34", "land_area": "0.22 একর"}],
-    "savar-cs-01": [{"id": "k-106", "khatian_no": "301", "owner": "মোঃ কামাল হোসেন", "dag_no": "501", "land_area": "0.15 একর"}],
-    "savar-rs-01": [{"id": "k-107", "khatian_no": "410", "owner": "মোঃ জসিম উদ্দিন", "dag_no": "812", "land_area": "0.33 একর"}],
-    "sylhet-cs-01": [{"id": "k-108", "khatian_no": "9", "owner": "মোঃ রফিক আহমেদ", "dag_no": "19", "land_area": "0.25 একর"}],
+    "trishal-rs-02": [{"id": "k-103", "khatian_no": "103", "owner": "মোঃ সেলিম মিয়া", "guardian": "পিং আব্দুস সাত্তার", "dag_no": "88", "land_area": "0.18 একর"}],
+    "trishal-sa-01": [{"id": "k-104", "khatian_no": "55", "owner": "মোঃ হাবিবুর রহমান", "guardian": "পিং কাদের আলী", "dag_no": "71", "land_area": "0.27 একর"}],
+    "muktagacha-rs-01": [{"id": "k-105", "khatian_no": "12", "owner": "মোছাঃ নাসিমা আক্তার", "guardian": "পিং আব্দুল হক", "dag_no": "34", "land_area": "0.22 একর"}],
+    "savar-cs-01": [{"id": "k-106", "khatian_no": "301", "owner": "মোঃ কামাল হোসেন", "guardian": "পিং মতিউর রহমান", "dag_no": "501", "land_area": "0.15 একর"}],
+    "savar-rs-01": [{"id": "k-107", "khatian_no": "410", "owner": "মোঃ জসিম উদ্দিন", "guardian": "পিং কাসেম আলী", "dag_no": "812", "land_area": "0.33 একর"}],
+    "sylhet-cs-01": [{"id": "k-108", "khatian_no": "9", "owner": "মোঃ রফিক আহমেদ", "guardian": "পিং আব্দুর রহমান", "dag_no": "19", "land_area": "0.25 একর"}],
 }
 
 
@@ -91,14 +87,37 @@ def list_khatians(mouza_id: str, q: str = "") -> list[dict[str, Any]]:
     q = q.strip().lower()
     if not q:
         return rows
-    return [r for r in rows if any(q in str(r.get(k, "")).lower() for k in ("khatian_no", "owner", "dag_no"))]
+    return [r for r in rows if any(q in str(r.get(k, "")).lower() for k in ("khatian_no", "owner", "guardian", "dag_no"))]
 
 
 def get_khatian(khatian_id: str) -> dict[str, Any] | None:
-    for rows in KHATIANS.values():
+    for mouza_id, rows in KHATIANS.items():
         for row in rows:
-            if row["id"] == khatian_id:
-                return row
+            if row["id"] != khatian_id:
+                continue
+            upazila_id = survey_id = ""
+            for key, values in MOUZAS.items():
+                if any(item.id == mouza_id for item in values):
+                    upazila_id, survey_id = key.split(":", 1)
+                    break
+            mouza = next((item for item in MOUZAS.get(f"{upazila_id}:{survey_id}", []) if item.id == mouza_id), None)
+            district_id = next((district for district, values in UPAZILAS.items() if any(item.id == upazila_id for item in values)), "")
+            division_id = next((division for division, values in DISTRICTS.items() if any(item.id == district_id for item in values)), "")
+            survey_name = next((item.name for item in SURVEYS.get(upazila_id, []) if item.id == survey_id), survey_id)
+            jl = ""
+            if mouza and "JL " in mouza.name:
+                jl = mouza.name.split("JL ", 1)[1].rstrip(")")
+            result = dict(row)
+            result.update({
+                "division": next((item.name for item in DIVISIONS if item.id == division_id), division_id),
+                "district": next((item.name for item in DISTRICTS.get(division_id, []) if item.id == district_id), district_id),
+                "upazila": next((item.name for item in UPAZILAS.get(district_id, []) if item.id == upazila_id), upazila_id),
+                "survey": survey_name,
+                "mouza": mouza.name.split(" (JL", 1)[0] if mouza else mouza_id,
+                "jl_no": jl,
+                "total_land": row["land_area"],
+            })
+            return result
     return None
 
 
@@ -116,7 +135,7 @@ def ensure_demo_pdf(khatian_id: str) -> Path:
     c.drawString(60, height - 70, "SURVEY KHATIAN - DEMO COPY")
     c.setFont("Helvetica", 12)
     y = height - 120
-    for label, value in [("Khatian No", row["khatian_no"]), ("Owner", row["owner"]), ("Dag No", row["dag_no"]), ("Land Area", row["land_area"]), ("Record ID", row["id"])]:
+    for label, value in [("Khatian No", row["khatian_no"]), ("Owner", row["owner"]), ("Guardian", row["guardian"]), ("Dag No", row["dag_no"]), ("Land Area", row["land_area"]), ("Record ID", row["id"])]:
         c.drawString(60, y, f"{label}: {value}")
         y -= 28
     c.setFont("Helvetica-Oblique", 9)
