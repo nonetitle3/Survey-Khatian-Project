@@ -10,7 +10,7 @@
   <main class="container">
     <header class="hero">
       <h1>সার্ভে খতিয়ান সার্চ</h1>
-      <p>বিভাগ → জেলা → উপজেলা → সার্ভে → মৌজা → খতিয়ান → Preview / Download</p>
+      <p>বিভাগ → জেলা → উপজেলা → সার্ভে → মৌজা → খতিয়ান → বিস্তারিত তথ্য → PDF</p>
     </header>
 
     <section class="card">
@@ -20,7 +20,7 @@
         <label>উপজেলা<select id="upazila" disabled></select></label>
         <label>সার্ভে<select id="survey" disabled></select></label>
         <label>মৌজা / JL<select id="mouza" disabled></select></label>
-        <label>খতিয়ান / মালিক / দাগ<input id="search" disabled placeholder="Search..."></label>
+        <label>খতিয়ান / মালিক / অভিভাবক / দাগ<input id="search" disabled placeholder="খুঁজুন..."></label>
       </div>
       <div class="actions"><button id="searchBtn" disabled>খুঁজুন</button><button id="resetBtn" class="secondary">Reset</button></div>
     </section>
@@ -32,9 +32,10 @@
   </main>
 
   <dialog id="preview">
-    <div class="dialog-head"><strong>PDF Preview</strong><button id="close">×</button></div>
-    <iframe id="pdfFrame" title="Khatian PDF preview"></iframe>
-    <div class="dialog-actions"><button id="download">Download PDF</button><button id="print" class="secondary">Print</button></div>
+    <div class="dialog-head"><strong>খতিয়ান বিবরণী</strong><button id="close">×</button></div>
+    <div id="khatianDetails" class="khatian-preview">তথ্য লোড হচ্ছে...</div>
+    <div class="dialog-actions"><button id="pdfPreviewBtn">PDF Preview</button><button id="download">Download PDF</button><button id="print" class="secondary">Print</button></div>
+    <iframe id="pdfFrame" title="Khatian PDF preview" hidden></iframe>
   </dialog>
   <script src="/static/app.js"></script>
 </body>
